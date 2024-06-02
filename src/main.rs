@@ -1,4 +1,5 @@
-use reqwest;
+use std::collections::HashMap;
+
 use scraper::Selector;
 pub const URL: &str = "https://www.toki.co.jp/purchasing/TLIHTML.files/sheet001.htm";
 
@@ -22,22 +23,29 @@ fn main() {
     html.drain(0..18);
     let index = html.iter().position(|r| r == "TOKISTAR CODE").unwrap();
     let mut dates: Vec<String> = Vec::new();
+
     for i in 0..index {
         dates.push(html[i].clone());
     }
+
     let row_len = dates.len() + 5;
     html.drain(0..(index + row_len));
     let num_rows = (html.len() / row_len) - 1;
+    let mut tbl: HashMap<String, Vec<f32>> = HashMap::new();
     let mut table: Vec<ScheduleRow> = Vec::new();
+
     for _ in 0..num_rows {
         let mut row: ScheduleRow = ScheduleRow::new(String::new(), Vec::new());
         for i in 0..row_len {
             let temp = html[i].clone();
             match i {
                 0 => {
-                    row.part_number = (&temp[0..temp.find("<").unwrap_or(temp.len())]).to_string();
+                    row.part_number = (temp[0..temp.find('<').unwrap_or(temp.len())]).to_string();
+                    let mut t = html[i].clone();
+                    t = (t[0..t.find('<').unwrap_or(t.len())]).to_string();
+                    tbl.insert(t, vec![1.0, 2.0, 3.0, 4.0, 5.0]);
                 }
-                1 | 2 | 3 | 4 => continue,
+                1..=4 => continue,
                 _ => {
                     if temp == "�@" {
                         row.shipments.push(0.0);
@@ -58,6 +66,7 @@ fn main() {
 
     table.iter().for_each(|x| println!("{:?}", x));
     println!("{:?}", schedule);
+    println!("{:?}", tbl);
 }
 
 fn get_html(url: &str) -> Vec<String> {
