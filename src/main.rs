@@ -2,7 +2,7 @@ use reqwest;
 use scraper::Selector;
 pub const URL: &str = "https://www.toki.co.jp/purchasing/TLIHTML.files/sheet001.htm";
 
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 struct ScheduleRow {
     part_number: String,
     shipments: Vec<f32>,
@@ -32,18 +32,17 @@ fn main() {
     for _ in 0..num_rows {
         let mut row: ScheduleRow = ScheduleRow::new(String::new(), Vec::new());
         for i in 0..row_len {
+            let temp = html[i].clone();
             match i {
                 0 => {
-                    let temp = html[i].clone();
                     row.part_number = (&temp[0..temp.find("<").unwrap_or(temp.len())]).to_string();
                 }
                 1 | 2 | 3 | 4 => continue,
                 _ => {
-                    let qty = html[i].clone();
-                    if qty == "�@" {
+                    if temp == "�@" {
                         row.shipments.push(0.0);
                     } else {
-                        row.shipments.push(html[i].clone().parse().unwrap());
+                        row.shipments.push(temp.parse().unwrap());
                     }
                 }
             }
@@ -51,8 +50,14 @@ fn main() {
         table.push(row);
         html.drain(0..row_len);
     }
-    table.sort_by_key(part_number);
+
+    let mut schedule: Vec<ScheduleRow> = Vec::new();
+    let temp = table[0].clone();
+    schedule.push(temp);
+    table.drain(0..1);
+
     table.iter().for_each(|x| println!("{:?}", x));
+    println!("{:?}", schedule);
 }
 
 fn get_html(url: &str) -> Vec<String> {
