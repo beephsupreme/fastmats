@@ -44,6 +44,7 @@ fn main() {
 
         html.drain(0..row_len);
     }
+    println!("{:?}", dates);
     println!("{:?}", schedule);
 }
 
@@ -58,3 +59,9 @@ fn get_html(url: &str) -> Vec<String> {
     }
     elements
 }
+
+//fn build_schedule(html: Vec<String>) -> HashMap<String<Vec<f32>> {
+//
+//}
+
+fn get_dates(html: Vec<String>) -> Vec<String> {}
