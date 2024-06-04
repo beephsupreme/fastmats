@@ -1,9 +1,32 @@
-use std::collections::HashMap;
-
 use scraper::Selector;
+use std::collections::HashMap;
+use std::fs;
 pub const URL: &str = "https://www.toki.co.jp/purchasing/TLIHTML.files/sheet001.htm";
 
 fn main() {
+    let contents =
+        fs::read_to_string("./data/data.txt").expect("Should have been able to read the file");
+
+    println!("With text:\n{contents}");
+
+    // let (dates, schedule) = get_schedule();
+    // println!("{:?}", dates);
+    // translate_schedule(schedule);
+}
+
+fn get_html(url: &str) -> Vec<String> {
+    let response = reqwest::blocking::get(url).unwrap().text().unwrap();
+    // let response = fs::read_to_string("schedule.html").unwrap();
+    let html = scraper::Html::parse_document(&response);
+    let selector = Selector::parse("td").unwrap();
+    let mut elements: Vec<String> = Vec::new();
+    for element in html.select(&selector) {
+        elements.push(element.inner_html());
+    }
+    elements
+}
+
+fn get_schedule() -> (Vec<String>, HashMap<String, Vec<f32>>) {
     let mut html: Vec<String> = get_html(URL);
     html.drain(0..18);
     let index = html.iter().position(|r| r == "TOKISTAR CODE").unwrap();
@@ -28,7 +51,12 @@ fn main() {
             if temp == "�@" {
                 vals.push(0.0);
             } else {
-                vals.push(temp.parse().unwrap());
+                match temp.parse::<f32>() {
+                    Ok(t) => vals.push(t),
+                    Err(e) => {
+                        println!("{}/{}", temp, e)
+                    }
+                }
             }
         }
 
@@ -44,24 +72,10 @@ fn main() {
 
         html.drain(0..row_len);
     }
-    println!("{:?}", dates);
+    (dates, schedule)
+}
+
+fn translate_schedule(schedule: HashMap<String, Vec<f32>>) {
+    println!();
     println!("{:?}", schedule);
 }
-
-fn get_html(url: &str) -> Vec<String> {
-    let response = reqwest::blocking::get(url).unwrap().text().unwrap();
-    // let response = fs::read_to_string("schedule.html").unwrap();
-    let html = scraper::Html::parse_document(&response);
-    let selector = Selector::parse("td").unwrap();
-    let mut elements: Vec<String> = Vec::new();
-    for element in html.select(&selector) {
-        elements.push(element.inner_html());
-    }
-    elements
-}
-
-//fn build_schedule(html: Vec<String>) -> HashMap<String<Vec<f32>> {
-//
-//}
-
-fn get_dates(html: Vec<String>) -> Vec<String> {}
