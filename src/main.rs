@@ -1,19 +1,14 @@
 #![allow(dead_code)]
+use csv;
 use scraper::Selector;
 use std::collections::HashMap;
 use std::fs;
 pub const URL: &str = "https://www.toki.co.jp/purchasing/TLIHTML.files/sheet001.htm";
 
 fn main() {
-    let mut contents =
-        fs::read_to_string("./data/data.txt").expect("Should have been able to read the file");
+    let mut contents = csv::Reader::from_reader("./data/data.txt");
 
     let mut translation: HashMap<String, f32> = HashMap::new();
-
-    let mut tokens = contents.split_ascii_whitespace();
-    for i in 0..5 {
-        println!("{}", tokens.next().unwrap());
-    }
 
     // println!("With text:\n{contents}");
 
