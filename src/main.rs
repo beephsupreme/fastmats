@@ -1,22 +1,20 @@
-#![allow(dead_code)]
+#[allow(dead_code)]
 use csv;
 use scraper::Selector;
-use std::collections::HashMap;
-use std::fs;
+use std::{collections::HashMap, error::Error};
 pub const URL: &str = "https://www.toki.co.jp/purchasing/TLIHTML.files/sheet001.htm";
+pub const DATA: &str = "./data/data.txt";
 
 fn main() {
-    let mut contents = csv::Reader::from_reader("./data/data.txt");
-
-    let mut translation: HashMap<String, f32> = HashMap::new();
-
-    // println!("With text:\n{contents}");
+    if let Err(e) = load_data() {
+        eprintln!("load_data(\"{DATA}\") : {e}");
+    }
 
     // let (dates, schedule) = get_schedule();
     // println!("{:?}", dates);
-    // translate_schedule(schedule);
 }
 
+#[allow(dead_code)]
 fn get_html(url: &str) -> Vec<String> {
     let response = reqwest::blocking::get(url).unwrap().text().unwrap();
     // let response = fs::read_to_string("schedule.html").unwrap();
@@ -29,6 +27,7 @@ fn get_html(url: &str) -> Vec<String> {
     elements
 }
 
+#[allow(dead_code)]
 fn get_schedule() -> (Vec<String>, HashMap<String, Vec<f32>>) {
     let mut html: Vec<String> = get_html(URL);
     html.drain(0..18);
@@ -78,7 +77,20 @@ fn get_schedule() -> (Vec<String>, HashMap<String, Vec<f32>>) {
     (dates, schedule)
 }
 
+#[allow(dead_code)]
 fn translate_schedule(schedule: HashMap<String, Vec<f32>>) {
     println!();
     println!("{:?}", schedule);
+}
+
+fn load_data() -> Result<(), Box<dyn Error>> {
+    let mut reader = csv::Reader::from_path(DATA)?;
+    let headers = reader.headers()?;
+    println!("{:?}", headers);
+
+    for result in reader.records() {
+        let record = result?;
+        println!("{:?}", record);
+    }
+    Ok(())
 }
