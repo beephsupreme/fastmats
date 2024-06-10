@@ -222,6 +222,7 @@ dependencies = [
  "csv",
  "reqwest",
  "scraper",
+ "serde",
 ]
 
 [[package]]

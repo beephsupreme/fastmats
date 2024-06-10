@@ -1,6 +1,6 @@
-#[allow(dead_code)]
 use csv;
 use scraper::Selector;
+use serde::Deserialize;
 use std::{collections::HashMap, error::Error};
 pub const URL: &str = "https://www.toki.co.jp/purchasing/TLIHTML.files/sheet001.htm";
 pub const DATA: &str = "./data/data.txt";
@@ -88,9 +88,18 @@ fn load_data() -> Result<(), Box<dyn Error>> {
     let headers = reader.headers()?;
     println!("{:?}", headers);
 
-    for result in reader.records() {
-        let record = result?;
+    for result in reader.deserialize() {
+        let record: Data = result?;
         println!("{:?}", record);
     }
     Ok(())
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct Data {
+    part_number: String,
+    on_hand: f32,
+    on_order: f32,
+    reorder: f32,
+    multiplier: f32,
 }
